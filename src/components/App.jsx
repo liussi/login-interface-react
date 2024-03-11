@@ -1,7 +1,8 @@
-import ForgotPassword from "page/ForgotPassword/ForgotPassword";
-import Login from "page/Login/Login";
-import ResetPassword from "page/ResetPassword/ResetPassword";
-import { Route, Routes } from "react-router-dom"
+import React from 'react';
+import ForgotPassword from './../page/ForgotPassword/ForgotPassword';
+import Login from './../page/Login/Login';
+import ResetPassword from './../page/ResetPassword/ResetPassword';
+import { Route, Routes } from 'react-router-dom';
 
 export const App = () => {
   return (
