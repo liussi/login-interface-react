@@ -1,38 +1,71 @@
-import Button from 'components/Button/Button';
+
+import React from 'react';
 import EmailInput from 'components/InputEmail/InputEmail';
-import { useState } from 'react';
-import { resetPassword } from '../../api/authApi';
 import Icons from '../../img/sprite.svg';
 import Icon from 'components/Icon/Icon';
 import Header from 'components/Title/Title';
+import CustomButton from 'components/Button/Button';
+import { resetPasswordUser } from '../../redux/auth/operations';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+
+
 
 function ForgotPasswordForm() {
-  const [email, setEmail] = useState('');
+  const dispatch = useDispatch();
 
-  const handleEmailChange = event => {
-    setEmail(event.target.value);
-  };
+   const navigate = useNavigate();
+  const formik = useFormik({
+    initialValues: {
+      email: '',
+    },
+    validationSchema: Yup.object().shape({
+      email: Yup.string()
+        .email('Please enter a valid email address')
+        .required('Email is required')
+        .min(15, 'Email must be at least 15 characters')
+        .max(512, 'Email must be at most 512 characters'),
+    }),
+    onSubmit: async (values, { resetForm }) => {
+   
+const response = await dispatch(resetPasswordUser({ email: values.email }));
+        if (response.payload) {
+          toast.success(
+            'You have been successfully logged in! Your session is now active.'
+          );
+          resetForm();
+           navigate('/reset-password');
+        } else {
+          toast.error('Login failed. Please try again.');
+        }
+    
+    },
+  });
 
-  const handleSubmit = async event => {
-    event.preventDefault();
-
-    await resetPassword(email);
-    setEmail('');
+  const handleCancel = () => {
+    navigate('/');
   };
 
   return (
     <>
       <Icon iconPath={Icons + '#icon-qencode'} width={178} height={32} />
       <Header title={'Forgot Password?'} />
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={formik.handleSubmit}>
         <EmailInput
-          value={email}
-          onChange={handleEmailChange}
+          value={formik.values.email}
+          onChange={e => formik.setFieldValue('email', e.target.value)} 
+          onBlur={formik.handleBlur}
           placeholder="Enter your email"
         />
+        {formik.touched.email && formik.errors.email ? (
+          <div>{formik.errors.email}</div>
+        ) : null}
 
-        <Button type="submit" label="Send" />
-        <Button type="submit" label="Cancel" />
+        <CustomButton type="submit" label="Send" />
+        <CustomButton type="button" label="Cancel" onClick={handleCancel} />
       </form>
     </>
   );

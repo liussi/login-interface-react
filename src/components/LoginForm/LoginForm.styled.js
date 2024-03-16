@@ -65,3 +65,8 @@ line-height: 1.4;
 export const StyledTitle = styled.p`
    display: inline;
 `;
+
+export const StyleErrorMessage = styled.div`
+  color: red;
+  font-size: 14px;
+`;

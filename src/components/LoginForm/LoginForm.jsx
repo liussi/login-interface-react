@@ -1,58 +1,82 @@
 import React, { useState } from 'react';
-import { createAccessToken, login } from '../../api/authApi';
-import Button from 'components/Button/Button';
 import EmailInput from 'components/InputEmail/InputEmail';
 import PasswordInput from 'components/InputPassword/InputPassword';
 import Icons from '../../img/sprite.svg';
 import Icon from 'components/Icon/Icon';
 import Header from 'components/Title/Title';
-import { Networks, StyleForm, StyledLink, StyledNetworks, StyledTitle, StyledWrapBtn, WordBesideLink, Wrapper } from './LoginForm.styled';
+import {
+  Networks,
+  StyleErrorMessage,
+  StyleForm,
+  StyledLink,
+  StyledNetworks,
+  StyledTitle,
+  StyledWrapBtn,
+  WordBesideLink,
+  Wrapper,
+} from './LoginForm.styled';
 import { AppContainerWrap } from 'styled/GlobalStyled';
+import { useAuth } from '../../hooks/useAuth';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { useDispatch } from 'react-redux';
+import { loginUser } from '../../redux/auth/operations';
 
+import {  useFormik } from 'formik';
+import * as Yup from 'yup';
+import CustomButton from 'components/Button/Button';
 
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const dispatch = useDispatch();
+  const { token } = useAuth();
 
-  const handleEmailChange = event => {
-    setEmail(event.target.value);
-  };
+  const formik = useFormik({
+    initialValues: {
+      email: '',
+      password: '',
+    },
 
-  const handlePasswordChange = event => {
-    setPassword(event.target.value);
-  };
+    onSubmit: async (values, { resetForm }) => {
+      const response = await dispatch(loginUser(values));
 
-  const handleSubmit = async event => {
-    event.preventDefault();
-    try {
-      if (!showPasswordInput) {
-        // await createAccessToken(email);
-        setShowPasswordInput(true);
+      if (response.payload) {
+        toast.success(
+          'You have been successfully logged in! Your session is now active.'
+        );
+       resetForm();
       } else {
-        // await login(email, password);
-        console.log('Login successful'); // Тут можна обробити успішний логін
-        setEmail('');
-        setPassword('');
+        toast.error('Login failed. Please try again.');
       }
-    } catch (error) {
-      console.error('Something went wrong', error);
-    }
-  };
+    },
+
+    validationSchema: Yup.object().shape({
+      email: Yup.string()
+        .email('Please enter a valid email address')
+        .required('Email is required')
+        .min(15, 'Email must be at least 15 characters')
+        .max(512, 'Email must be at most 512 characters'),
+      password: Yup.string()
+        .required('Password is required')
+        .min(5, 'Password must be at least 5 characters')
+        .max(512, 'Password must be at most 512 characters'),
+    }),
+  });
+  // test+ui@qencode.com
+  // C4aLE2dRM7QE5mT*
 
   return (
     <AppContainerWrap>
       <Icon iconPath={Icons + '#icon-qencode'} width={178} height={32} />
       <Header title={'Log in to your account'} />
       <StyledWrapBtn>
-        <Networks>
+        <Networks type="button">
           Google
           <StyledNetworks>
             <Icon iconPath={Icons + '#icon-google'} width={18} height={18} />
           </StyledNetworks>
         </Networks>
-        <Networks>
+        <Networks type="button">
           Github
           <StyledNetworks>
             <Icon iconPath={Icons + '#icon-git'} width={18} height={18} />
@@ -60,26 +84,33 @@ function Login() {
         </Networks>
       </StyledWrapBtn>
       <WordBesideLink> OR </WordBesideLink>
-      <StyleForm onSubmit={handleSubmit}>
+      <StyleForm onSubmit={formik.handleSubmit}>
         <EmailInput
-          value={email}
-          onChange={handleEmailChange}
+          value={formik.values.email}
+          onChange={e => formik.setFieldValue('email', e.target.value)}
           placeholder="Work email"
+          onBlur={formik.handleBlur}
         />
-        {showPasswordInput && (
-          <PasswordInput
-            value={password}
-            onChange={handlePasswordChange}
-            placeholder="Password"
-          />
-        )}
+        {formik.touched.email && formik.errors.email ? (
+          <StyleErrorMessage>{formik.errors.email}</StyleErrorMessage>
+        ) : null}
+        <PasswordInput
+          value={formik.values.password}
+          onChange={e => formik.setFieldValue('password', e.target.value)} 
+          placeholder="Password"
+          onBlur={formik.handleBlur}
+        />
+        {formik.touched.password && formik.errors.password ? (
+          <StyleErrorMessage>{formik.errors.password}</StyleErrorMessage>
+        ) : null}
         <Wrapper>
           <StyledLink to="/forgot-password">Forgot your password?</StyledLink>
         </Wrapper>
-        <Button type="submit" label="Log in to Qencode" />
+        <CustomButton type="submit" label="Log in to Qencode" />
       </StyleForm>
       <StyledTitle>Is your company new to Qencode? </StyledTitle>
       <StyledLink to="/">Sign up</StyledLink>
+      <ToastContainer />
     </AppContainerWrap>
   );
 }

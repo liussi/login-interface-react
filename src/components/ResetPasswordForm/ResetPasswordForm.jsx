@@ -5,6 +5,7 @@ import PasswordInput from 'components/InputPassword/InputPassword';
 import Icon from 'components/Icon/Icon';
 import Icons from '../../img/sprite.svg';
 import Header from 'components/Title/Title';
+import CustomButton from 'components/Button/Button';
 
 function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -40,7 +41,7 @@ function ResetPassword() {
           onChange={handleConfirmPasswordChange}
           placeholder="Confirm Password"
         />
-        <Button type="submit" label="Reset password" />
+        <CustomButton type="submit" label="Reset password" />
       </form>
     </>
   );

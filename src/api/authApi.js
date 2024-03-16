@@ -1,4 +1,7 @@
 import axios from 'axios';
+
+axios.defaults.baseURL = 'https://auth-qa.qencode.com/v1';
+
 export async function createAccessToken(accessId) {
     const url = 'https://auth-qa.qencode.com/v1/auth/access-token';
     const body = { access_id: accessId };
@@ -11,38 +14,35 @@ export async function createAccessToken(accessId) {
     }
 }
 
-export async function login(email, password) {
-    const url = 'https://auth-qa.qencode.com/v1/auth/login';
-    const body = { email, password };
+export const login = async body => {
+  const { data } = await axios.post('auth/login', body);
+  return data;
+};
 
-    try {
-        const response = await axios.post(url, body);
-        return response.data;
-    } catch (error) {
-        throw error.response.data;
-    }
+
+export const forgotPassword = async (email, redirectUrl = 'https://auth-qa.qencode.com/password-set') => {
+   const response = await axios.post('auth/password-reset', {
+      email,
+      redirect_url: redirectUrl
+    });
+    return response.data;
+};
+
+export const setNewPassword = async (token, secret, password,password_confirm) => {
+
+      const response = await axios.post('auth/password-set', {
+     token, secret, password ,password_confirm
+    });
+    return response.data;
 }
 
-export async function resetPassword(email) {
-    const url = 'https://auth-qa.qencode.com/v1/auth/password-reset';
-    const body = { email };
-
-    try {
-        const response = await axios.post(url, body);
-        return response.data;
-    } catch (error) {
-        throw error.response.data;
-    }
-}
-
-export async function setNewPassword(token, secret, password,password_confirm) {
-    const url = 'https://auth-qa.qencode.com/v1/auth/password-set';
-    const body = { token, secret, password ,password_confirm};
-
-    try {
-        const response = await axios.post(url, body);
-        return response.data;
-    } catch (error) {
-        throw error.response.data;
-    }
+export const refreshAccessToken = async (refreshToken) => {
+  try {
+    const response = await axios.post('auth/refresh-token', {
+      refresh_token: refreshToken
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
 }
